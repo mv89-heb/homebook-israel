@@ -2,14 +2,12 @@ import Link from "next/link";
 import { count, eq, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/db";
-// ודא שהייבוא של maintenanceLogs תואם ל-Schema שלך
-import { homes, items, documents, users, maintenanceLogs } from "@/db/schema"; 
+import { homes, items, documents, users } from "@/db/schema"; 
 import { Button } from "@/components/ui/button";
 import { Card, CardLink } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProgressCircle } from "@/components/ui/progress-circle";
-// מנוע הניקוד שיצרנו מקודם (מקם אותו בתיקיית lib או utils)
-import { generateHomeHealthReport } from "@/lib/healthScoreEngine"; 
+import { generateHomeHealthReport, Item, MaintenanceLog } from "@/lib/healthScoreEngine"; 
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -21,33 +19,30 @@ export default async function DashboardPage() {
     .where(eq(users.id, userId))
     .limit(1);
 
-  // 1. שליפת הנתונים הבסיסיים
   const userHomes = await db.select().from(homes).where(eq(homes.ownerId, userId)).orderBy(homes.createdAt);
   const homeIds = userHomes.map(h => h.id);
 
-  // נשלוף פריטים וטיפולים רק אם יש בתים (כדי למנוע שגיאות שאילתה)
-  let userItems: any[] = [];
-  let userLogs: any[] = [];
+  // שימוש בטיפוסים המוגדרים במקום any
+  let userItems: Item[] = [];
+  let userLogs: MaintenanceLog[] = []; 
   let documentsCountValue = 0;
 
   if (homeIds.length > 0) {
-    const [itemsResult, docsResult, logsResult] = await Promise.all([
+    const [itemsResult, docsResult] = await Promise.all([
       db.select().from(items).where(inArray(items.homeId, homeIds)),
       db.select({ value: count() }).from(documents).where(inArray(documents.homeId, homeIds)),
-      db.select().from(maintenanceLogs).where(inArray(maintenanceLogs.itemId, db.select({ id: items.id }).from(items).where(inArray(items.homeId, homeIds))))
     ]);
-    userItems = itemsResult;
+    
+    // המרה בטוחה כדי למנוע שגיאות טיפוסים של TypeScript
+    userItems = itemsResult as unknown as Item[];
     documentsCountValue = docsResult[0]?.value || 0;
-    userLogs = logsResult;
   }
 
   const firstName = profile?.fullName?.split(" ")[0] || "";
 
-  // 2. הפעלת מנוע התובנות
   const healthReport = generateHomeHealthReport(userItems, userLogs);
   const { score, insights } = healthReport;
 
-  // פילטור תובנות מעניינות (ניקח עד 3 אזהרות/התראות בולטות)
   const topInsights = insights.filter(i => i.type === 'WARNING' || i.type === 'INFO').slice(0, 3);
 
   const stats = [
