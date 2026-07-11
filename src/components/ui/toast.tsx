@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 interface ToastProps {
   message: string;
@@ -12,7 +12,7 @@ export function Toast({ message, type = "success", onClose }: ToastProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
-    }, 3000); // נעלם אחרי 3 שניות
+    }, 3000); 
     return () => clearTimeout(timer);
   }, [onClose]);
 
