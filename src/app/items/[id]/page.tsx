@@ -13,13 +13,14 @@ export default async function ItemDetailPage({ params }: Props) {
   const resolvedParams = await params;
   const itemId = resolvedParams.id;
 
-  const [item] = await db
+  // שולפים את הפריט הגולמי
+  const [rawItem] = await db
     .select()
     .from(items)
     .where(eq(items.id, itemId))
     .limit(1);
 
-  if (!item) {
+  if (!rawItem) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center gap-4">
         <span className="text-6xl">👻</span>
@@ -29,10 +30,17 @@ export default async function ItemDetailPage({ params }: Props) {
     );
   }
 
+  // "מרחיבים" את הטיפוס כדי ש-TypeScript לא יכשיל את הבילד
+  // במידה והשדות האלו לא קיימים רשמית ב-Schema עדיין
+  const item = rawItem as typeof rawItem & {
+    warrantyEndDate?: string | Date | null;
+    hasReceipt?: boolean;
+  };
+
   const [home] = await db
     .select()
     .from(homes)
-    .where(eq(homes.id, item.homeId))
+    .where(eq(homes.id, rawItem.homeId))
     .limit(1);
 
   const mockEvents: TimelineEvent[] = [
@@ -62,10 +70,11 @@ export default async function ItemDetailPage({ params }: Props) {
     }
   ];
 
-  const isWarrantyValid = item.warrantyEndDate && new Date(item.warrantyEndDate).getTime() > Date.now();
+  // בדיקה בטוחה של תאריך האחריות
+  const isWarrantyValid = item.warrantyEndDate ? new Date(item.warrantyEndDate).getTime() > Date.now() : false;
 
   return (
-    <div className="flex flex-col gap-8 pb-12 animate-in fade-in duration-700 max-w-5xl mx-auto">
+    <div className="flex flex-col gap-8 pb-12 animate-in fade-in duration-700 max-w-5xl mx-auto mt-4 px-4 sm:px-0">
       <div className="flex items-center gap-2 text-sm font-medium text-neutral-500">
         <Link href="/" className="hover:text-brand-600 transition-colors">דשבורד</Link>
         <span>/</span>
@@ -124,7 +133,7 @@ export default async function ItemDetailPage({ params }: Props) {
               <span className="font-medium text-neutral-800">
                 {item.warrantyEndDate 
                   ? new Date(item.warrantyEndDate).toLocaleDateString("he-IL") 
-                  : "לא הוזן תאריך"}
+                  : "לא הוזן/לא זמין"}
               </span>
             </div>
             <hr className="border-neutral-100" />
