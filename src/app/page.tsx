@@ -26,7 +26,6 @@ export default async function DashboardPage() {
     .where(eq(users.id, userId))
     .limit(1);
 
-  // ... (מכאן והלאה הקוד ממשיך בדיוק כפי שהיה)
 
   const userHomes = await db.select().from(homes).where(eq(homes.ownerId, userId)).orderBy(homes.createdAt);
   const homeIds = userHomes.map(h => h.id);
