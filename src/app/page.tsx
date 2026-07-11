@@ -7,15 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardLink } from "@/components/ui/card";
 import { ProgressCircle } from "@/components/ui/progress-circle";
 import { generateHomeHealthReport, Item, MaintenanceLog } from "@/lib/healthScoreEngine"; 
-// 1. הוספנו את פונקציית ההפניה מ-Next.js
 import { redirect } from "next/navigation"; 
 
 export default async function DashboardPage() {
+  // הגנת התחברות: חסימת קריסה במקרה של משתמש לא מחובר
   const session = await auth();
-
-  // 2. ההגנה שלנו: אם אין חיבור, ננתב למסך ההתחברות במקום לקרוס
   if (!session || !session.user) {
-    redirect("/api/auth/signin"); // אם נתיב ההתחברות שלך שונה, עדכן אותו כאן
+    redirect("/api/auth/signin"); 
   }
 
   const userId = session.user.id;
@@ -25,7 +23,6 @@ export default async function DashboardPage() {
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
-
 
   const userHomes = await db.select().from(homes).where(eq(homes.ownerId, userId)).orderBy(homes.createdAt);
   const homeIds = userHomes.map(h => h.id);
@@ -64,7 +61,7 @@ export default async function DashboardPage() {
     <div className="flex flex-col gap-10 pb-12 animate-in fade-in duration-700">
       
       {/* --- HERO SECTION: MESH GRADIENT & GLASSMORPHISM --- */}
-      <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-8 p-8 md:p-10 rounded-[2rem] overflow-hidden shadow-sm border border-neutral-100">
+      <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-8 p-8 md:p-10 rounded-[2rem] overflow-hidden shadow-sm border border-neutral-100 bg-white">
         
         {/* רקע מעוצב (Mesh Background) */}
         <div className="absolute inset-0 bg-gradient-to-br from-neutral-50 to-neutral-100/50 z-0"></div>
