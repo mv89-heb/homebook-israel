@@ -5,7 +5,6 @@ import { db } from "@/db";
 import { homes, items, documents, users } from "@/db/schema"; 
 import { Button } from "@/components/ui/button";
 import { Card, CardLink } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
 import { ProgressCircle } from "@/components/ui/progress-circle";
 import { generateHomeHealthReport, Item, MaintenanceLog } from "@/lib/healthScoreEngine"; 
 
