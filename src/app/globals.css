@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+/*
+  HomeBook Israel design tokens.
+  Brand: deep teal (trust, home, calm) + warm gold accent (warranty/reminder
+  warmth) — deliberately not generic SaaS-blue or the cream+terracotta
+  combination that reads as "AI template".
+*/
+:root {
+  --background: #faf9f6;
+  --foreground: #1f2937;
+
+  --color-brand-50: #eef6f5;
+  --color-brand-100: #d3e8e6;
+  --color-brand-200: #a7d1cd;
+  --color-brand-300: #79b8b1;
+  --color-brand-400: #4a9d93;
+  --color-brand-500: #2c8177;
+  --color-brand-600: #146b65;
+  --color-brand-700: #0f544f;
+  --color-brand-800: #0b3f3b;
+  --color-brand-900: #072a27;
+
+  --color-accent-50: #fbf5e7;
+  --color-accent-100: #f4e5bd;
+  --color-accent-200: #ecd28d;
+  --color-accent-300: #ddb862;
+  --color-accent-400: #c99a3e;
+  --color-accent-500: #b5842f;
+  --color-accent-600: #966b25;
+
+  --color-danger: #c0392b;
+  --color-danger-bg: #fbeae8;
+  --color-success: #2f855a;
+  --color-success-bg: #e9f5ee;
+  --color-warning: #c99a3e;
+  --color-warning-bg: #fbf5e7;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-heebo);
+  --font-display: var(--font-display), var(--font-heebo);
+
+  --color-brand-50: var(--color-brand-50);
+  --color-brand-100: var(--color-brand-100);
+  --color-brand-200: var(--color-brand-200);
+  --color-brand-300: var(--color-brand-300);
+  --color-brand-400: var(--color-brand-400);
+  --color-brand-500: var(--color-brand-500);
+  --color-brand-600: var(--color-brand-600);
+  --color-brand-700: var(--color-brand-700);
+  --color-brand-800: var(--color-brand-800);
+  --color-brand-900: var(--color-brand-900);
+
+  --color-accent-50: var(--color-accent-50);
+  --color-accent-100: var(--color-accent-100);
+  --color-accent-200: var(--color-accent-200);
+  --color-accent-300: var(--color-accent-300);
+  --color-accent-400: var(--color-accent-400);
+  --color-accent-500: var(--color-accent-500);
+  --color-accent-600: var(--color-accent-600);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-heebo), Arial, Helvetica, sans-serif;
+}
+
+/*
+  RTL note: prefer Tailwind logical utilities (ms-, me-, ps-, pe-, text-start, text-end)
+  over directional ones (ml-, mr-, pl-, pr-, text-left, text-right) throughout the app
+  so the UI mirrors correctly since dir="rtl" is set on <html> by default.
+*/
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.25s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up {
+    animation: none;
+  }
+}
