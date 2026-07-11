@@ -7,16 +7,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardLink } from "@/components/ui/card";
 import { ProgressCircle } from "@/components/ui/progress-circle";
 import { generateHomeHealthReport, Item, MaintenanceLog } from "@/lib/healthScoreEngine"; 
+// 1. הוספנו את פונקציית ההפניה מ-Next.js
+import { redirect } from "next/navigation"; 
 
 export default async function DashboardPage() {
   const session = await auth();
-  const userId = session!.user.id;
+
+  // 2. ההגנה שלנו: אם אין חיבור, ננתב למסך ההתחברות במקום לקרוס
+  if (!session || !session.user) {
+    redirect("/api/auth/signin"); // אם נתיב ההתחברות שלך שונה, עדכן אותו כאן
+  }
+
+  const userId = session.user.id;
 
   const [profile] = await db
     .select({ fullName: users.fullName })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
+
+  // ... (מכאן והלאה הקוד ממשיך בדיוק כפי שהיה)
 
   const userHomes = await db.select().from(homes).where(eq(homes.ownerId, userId)).orderBy(homes.createdAt);
   const homeIds = userHomes.map(h => h.id);
