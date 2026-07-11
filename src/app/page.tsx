@@ -24,7 +24,7 @@ export default async function DashboardPage() {
 
   // שימוש בטיפוסים המוגדרים במקום any
   let userItems: Item[] = [];
-  let userLogs: MaintenanceLog[] = []; 
+  const userLogs: MaintenanceLog[] = []; // תוקן ל-const
   let documentsCountValue = 0;
 
   if (homeIds.length > 0) {
