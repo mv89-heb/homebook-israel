@@ -10,11 +10,9 @@ type Props = {
 };
 
 export default async function ItemDetailPage({ params }: Props) {
-  // ב-Next.js 15 חובה להמתין (await) ל-params
   const resolvedParams = await params;
   const itemId = resolvedParams.id;
 
-  // 1. שליפת הפריט מהדאטה-בייס
   const [item] = await db
     .select()
     .from(items)
@@ -31,14 +29,12 @@ export default async function ItemDetailPage({ params }: Props) {
     );
   }
 
-  // 2. שליפת הבית המשויך (לצורך תצוגת ניווט - Breadcrumbs)
   const [home] = await db
     .select()
     .from(homes)
     .where(eq(homes.id, item.homeId))
     .limit(1);
 
-  // 3. נתוני הדגמה ל-Timeline (יוחלף בהמשך בשליפה אמיתית מ-maintenanceLogs)
   const mockEvents: TimelineEvent[] = [
     {
       id: "1",
@@ -50,7 +46,7 @@ export default async function ItemDetailPage({ params }: Props) {
     },
     {
       id: "2",
-      date: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(), // לפני חצי שנה
+      date: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(),
       title: "החלפת חלק בלוי",
       description: "הטכנאי החליף את הכבל הראשי במסגרת האחריות.",
       type: "warning",
@@ -58,7 +54,7 @@ export default async function ItemDetailPage({ params }: Props) {
     },
     {
       id: "3",
-      date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(), // לפני שנה
+      date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
       title: "רכישה והתקנה",
       description: "הפריט נרכש והותקן בהצלחה בנכס.",
       type: "default",
@@ -66,13 +62,10 @@ export default async function ItemDetailPage({ params }: Props) {
     }
   ];
 
-  // חישוב מצב האחריות
   const isWarrantyValid = item.warrantyEndDate && new Date(item.warrantyEndDate).getTime() > Date.now();
 
   return (
     <div className="flex flex-col gap-8 pb-12 animate-in fade-in duration-700 max-w-5xl mx-auto">
-      
-      {/* ניווט פנימי (Breadcrumbs) */}
       <div className="flex items-center gap-2 text-sm font-medium text-neutral-500">
         <Link href="/" className="hover:text-brand-600 transition-colors">דשבורד</Link>
         <span>/</span>
@@ -83,7 +76,6 @@ export default async function ItemDetailPage({ params }: Props) {
         <span className="text-neutral-900">{item.name}</span>
       </div>
 
-      {/* --- HERO SECTION --- */}
       <div className="relative p-8 rounded-[2rem] overflow-hidden shadow-sm border border-neutral-100 bg-white">
         <div className="absolute inset-0 bg-gradient-to-r from-brand-50/50 to-transparent z-0"></div>
         <div className="absolute -top-20 -right-20 w-64 h-64 bg-brand-200/30 rounded-full blur-[60px] z-0"></div>
@@ -111,10 +103,7 @@ export default async function ItemDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* --- MAIN CONTENT (2 Columns) --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-        
-        {/* עמודה ימנית: ציר הזמן (תופסת 2/3 מהרוחב) */}
         <div className="md:col-span-2 flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-neutral-900">היסטוריית טיפולים</h2>
@@ -122,18 +111,14 @@ export default async function ItemDetailPage({ params }: Props) {
               + הוסף טיפול
             </Button>
           </div>
-          
           <div className="bg-white p-6 rounded-3xl border border-neutral-100 shadow-sm">
-            {/* כאן אנחנו קוראים לרכיב ה-Timeline שיצרנו קודם */}
             <Timeline events={mockEvents} />
           </div>
         </div>
 
-        {/* עמודה שמאלית: כרטיסיית מידע מהיר */}
         <div className="md:col-span-1 flex flex-col gap-4">
           <div className="bg-white p-6 rounded-3xl border border-neutral-100 shadow-sm flex flex-col gap-5">
             <h3 className="font-bold text-neutral-900 text-lg">תעודת זהות</h3>
-            
             <div className="flex flex-col gap-1">
               <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">תאריך סיום אחריות</span>
               <span className="font-medium text-neutral-800">
@@ -142,24 +127,19 @@ export default async function ItemDetailPage({ params }: Props) {
                   : "לא הוזן תאריך"}
               </span>
             </div>
-
             <hr className="border-neutral-100" />
-
             <div className="flex flex-col gap-1">
               <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">שיוך לנכס</span>
               <span className="font-medium text-neutral-800 flex items-center gap-2">
                 🏠 {home?.name}
               </span>
             </div>
-
             <hr className="border-neutral-100" />
-
             <Button variant="secondary" className="w-full rounded-xl justify-center font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 border-none">
               📁 צפה במסמכים מקושרים
             </Button>
           </div>
         </div>
-        
       </div>
     </div>
   );
