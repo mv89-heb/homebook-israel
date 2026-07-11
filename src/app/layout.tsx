@@ -30,7 +30,11 @@ export default function RootLayout({
       className={`${heebo.variable} ${frankRuhlLibre.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background font-sans text-neutral-900">
-        {children}
+        <main className="min-h-screen w-full">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </main>
       </body>
     </html>
   );
