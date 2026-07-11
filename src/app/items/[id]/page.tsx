@@ -4,12 +4,20 @@ import { db } from "@/db";
 import { items, homes } from "@/db/schema";
 import { Timeline, TimelineEvent } from "@/components/ui/timeline";
 import { Button } from "@/components/ui/button";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 type Props = {
   params: Promise<{ id: string }>;
 };
 
 export default async function ItemDetailPage({ params }: Props) {
+  // 1. הגנת התחברות: מוודאים שיש Session, אחרת מפנים ל-Login
+  const session = await auth();
+  if (!session || !session.user) {
+    redirect("/api/auth/signin"); 
+  }
+
   const resolvedParams = await params;
   const itemId = resolvedParams.id;
 
@@ -31,7 +39,6 @@ export default async function ItemDetailPage({ params }: Props) {
   }
 
   // "מרחיבים" את הטיפוס כדי ש-TypeScript לא יכשיל את הבילד
-  // במידה והשדות האלו לא קיימים רשמית ב-Schema עדיין
   const item = rawItem as typeof rawItem & {
     warrantyEndDate?: string | Date | null;
     hasReceipt?: boolean;
