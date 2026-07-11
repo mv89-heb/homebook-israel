@@ -22,9 +22,9 @@ export default async function DashboardPage() {
   const userHomes = await db.select().from(homes).where(eq(homes.ownerId, userId)).orderBy(homes.createdAt);
   const homeIds = userHomes.map(h => h.id);
 
-  // שימוש בטיפוסים המוגדרים במקום any
+  // שימוש בטיפוסים המוגדרים למניעת שגיאות ה-Linter
   let userItems: Item[] = [];
-  const userLogs: MaintenanceLog[] = []; // תוקן ל-const
+  const userLogs: MaintenanceLog[] = []; // מוגדר כ-const כדי לעבור את בדיקות ה-Linter
   let documentsCountValue = 0;
 
   if (homeIds.length > 0) {
@@ -40,39 +40,60 @@ export default async function DashboardPage() {
 
   const firstName = profile?.fullName?.split(" ")[0] || "";
 
+  // הפעלת מנוע התובנות
   const healthReport = generateHomeHealthReport(userItems, userLogs);
   const { score, insights } = healthReport;
 
   const topInsights = insights.filter(i => i.type === 'WARNING' || i.type === 'INFO').slice(0, 3);
 
   const stats = [
-    { icon: "🏠", label: "בתים", value: userHomes.length },
-    { icon: "📦", label: "פריטים", value: userItems.length },
-    { icon: "📄", label: "מסמכים", value: documentsCountValue },
+    { icon: "🏠", label: "נכסים מנוהלים", value: userHomes.length },
+    { icon: "📦", label: "פריטים תחת מעקב", value: userItems.length },
+    { icon: "📄", label: "מסמכים וקבלות", value: documentsCountValue },
   ];
 
   return (
-    <div className="flex flex-col gap-8 pb-12">
+    <div className="flex flex-col gap-10 pb-12 animate-in fade-in duration-700">
       
-      {/* --- HERO SECTION --- */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-brand-50/50 p-6 rounded-3xl border border-brand-100">
-        <div>
-          <h1 className="font-display text-3xl font-medium text-neutral-900">
+      {/* --- HERO SECTION: MESH GRADIENT & GLASSMORPHISM --- */}
+      <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-8 p-8 md:p-10 rounded-[2rem] overflow-hidden shadow-sm border border-neutral-100">
+        
+        {/* רקע מעוצב (Mesh Background) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-neutral-50 to-neutral-100/50 z-0"></div>
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-brand-200/40 rounded-full blur-[80px] z-0"></div>
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-200/40 rounded-full blur-[80px] z-0"></div>
+
+        {/* תוכן ה-Hero */}
+        <div className="relative z-10 max-w-xl">
+          <h1 className="font-display text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-neutral-900 to-neutral-500 tracking-tight leading-tight">
             {firstName ? `שלום, ${firstName} 👋` : "שלום 👋"}
           </h1>
-          <p className="mt-2 text-neutral-600 max-w-md">
+          <p className="mt-4 text-lg text-neutral-600 font-medium leading-relaxed">
             {userHomes.length > 0 
-              ? `הבתים שלך מתפקדים בצורה יפה. יש לנו ${topInsights.length > 0 ? 'כמה המלצות בשבילך' : 'הכל נראה מצוין!'}`
-              : "ברוכים הבאים! בואו נתחיל לנהל את הבתים שלכם בצורה חכמה."}
+              ? `יש לנו ${topInsights.length > 0 ? 'כמה המלצות חשובות' : 'חדשות מעולות, הכל תקין'} לגבי הנכסים שלך.`
+              : "ברוכים הבאים ללוח הבקרה. המקום בו הבית שלך הופך לחכם, מאורגן ונקי מדאגות."}
           </p>
+          
+          {userHomes.length === 0 && (
+            <div className="mt-6">
+              <Link href="/homes/new">
+                <Button className="rounded-full px-8 py-6 text-md font-semibold shadow-xl shadow-brand-500/20 hover:scale-105 transition-transform">
+                  ✨ הוסף את הבית הראשון שלך
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
         
+        {/* כרטיסיית הציון הצפה (Glassmorphism) */}
         {userHomes.length > 0 && (
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-neutral-100 flex items-center gap-6">
-            <ProgressCircle score={score} size={100} strokeWidth={8} />
-            <div className="flex flex-col gap-1 text-sm">
-              <span className="font-semibold text-neutral-900">סטטוס כללי</span>
-              <span className="text-neutral-500">מבוסס על {userItems.length} פריטים ותיעוד</span>
+          <div className="relative z-10 bg-white/60 backdrop-blur-xl p-6 rounded-3xl shadow-xl shadow-neutral-200/50 border border-white flex items-center gap-8 hover:bg-white/80 transition-colors">
+            <ProgressCircle score={score} size={110} strokeWidth={10} />
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-bold uppercase tracking-wider text-brand-600">מדד משוקלל</span>
+              <span className="text-sm font-medium text-neutral-500 max-w-[120px] leading-snug">
+                מבוסס על ניתוח של {userItems.length} פריטים
+              </span>
             </div>
           </div>
         )}
@@ -80,63 +101,58 @@ export default async function DashboardPage() {
 
       {/* --- PROACTIVE INSIGHTS --- */}
       {topInsights.length > 0 && (
-        <div className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold text-neutral-900">תובנות שכדאי לשים לב אליהן 💡</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex flex-col gap-4">
+          <h2 className="text-xl font-bold text-neutral-900 px-2">נקודות לתשומת לב 💡</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {topInsights.map((insight, idx) => (
-              <div key={idx} className={`p-4 rounded-xl border flex flex-col gap-2 ${insight.type === 'WARNING' ? 'bg-amber-50 border-amber-200' : 'bg-blue-50 border-blue-200'}`}>
-                <span className="text-xl">{insight.type === 'WARNING' ? '⚠️' : 'ℹ️'}</span>
-                <span className="text-sm font-medium text-neutral-800">{insight.message}</span>
+              <div key={idx} className={`relative overflow-hidden p-6 rounded-2xl border flex flex-col gap-3 transition-all hover:-translate-y-1 hover:shadow-lg ${insight.type === 'WARNING' ? 'bg-gradient-to-br from-amber-50 to-white border-amber-200 shadow-amber-100/50' : 'bg-gradient-to-br from-blue-50 to-white border-blue-200 shadow-blue-100/50'}`}>
+                <div className={`absolute top-0 right-0 w-16 h-16 rounded-full blur-2xl -mr-8 -mt-8 ${insight.type === 'WARNING' ? 'bg-amber-300/30' : 'bg-blue-300/30'}`}></div>
+                <span className="text-2xl relative z-10">{insight.type === 'WARNING' ? '⚠️' : 'ℹ️'}</span>
+                <span className="text-base font-semibold text-neutral-800 relative z-10">{insight.message}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* --- STATS --- */}
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
-        {stats.map((stat) => (
-          <Card key={stat.label} className="flex flex-col items-center gap-1 text-center sm:items-start sm:text-start shadow-sm hover:shadow-md transition-shadow">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-xl">
-              {stat.icon}
-            </span>
-            <span className="mt-2 text-2xl font-bold text-neutral-900">{stat.value}</span>
-            <span className="text-xs text-neutral-500 sm:text-sm font-medium">{stat.label}</span>
-          </Card>
-        ))}
-      </div>
+      {/* --- STATS CARDS --- */}
+      {userHomes.length > 0 && (
+        <div className="grid grid-cols-3 gap-4 sm:gap-6">
+          {stats.map((stat) => (
+            <Card key={stat.label} className="group flex flex-col items-center gap-2 text-center sm:items-start sm:text-start bg-white border border-neutral-100 shadow-sm hover:shadow-xl hover:border-brand-200 transition-all duration-300 p-6 rounded-3xl overflow-hidden relative">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-brand-50 rounded-full blur-xl group-hover:bg-brand-100 transition-colors opacity-50"></div>
+              <span className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-2xl text-brand-600 shadow-inner">
+                {stat.icon}
+              </span>
+              <span className="mt-3 text-4xl font-black text-neutral-900 tracking-tight relative z-10">{stat.value}</span>
+              <span className="text-sm font-semibold text-neutral-500 relative z-10">{stat.label}</span>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* --- HOMES LIST --- */}
-      {userHomes.length === 0 ? (
-        <EmptyState
-          icon="🏠"
-          title="עדיין לא הוספתם בית"
-          description="בואו נתחיל לארגן — הוספת בית ראשון לוקחת פחות מדקה."
-          action={
-            <Link href="/homes/new">
-              <Button>הוספת בית ראשון</Button>
-            </Link>
-          }
-        />
-      ) : (
-        <div className="flex flex-col gap-4 mt-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-neutral-900">
-              הבתים שלי ({userHomes.length})
+      {userHomes.length > 0 && (
+        <div className="flex flex-col gap-6 mt-4">
+          <div className="flex items-center justify-between px-2">
+            <h2 className="text-xl font-bold text-neutral-900">
+              הנכסים שלי
             </h2>
             <Link href="/homes/new">
-              <Button variant="secondary" className="rounded-full shadow-sm">+ הוספת בית</Button>
+              <Button variant="secondary" className="rounded-full shadow-sm hover:bg-neutral-100 text-sm font-medium">
+                + נכס חדש
+              </Button>
             </Link>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {userHomes.map((home) => (
-              <CardLink key={home.id} href={`/homes/${home.id}`} className="flex flex-col gap-2 p-5 border-neutral-200 hover:border-brand-300">
+              <CardLink key={home.id} href={`/homes/${home.id}`} className="group flex flex-col gap-3 p-6 rounded-3xl border border-neutral-200 bg-white hover:border-brand-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-start justify-between">
-                  <span className="text-lg font-semibold text-neutral-900">{home.name}</span>
-                  <span className="text-2xl">🏠</span>
+                  <span className="text-xl font-bold text-neutral-900 group-hover:text-brand-600 transition-colors">{home.name}</span>
+                  <div className="h-10 w-10 rounded-full bg-neutral-50 flex items-center justify-center text-xl group-hover:bg-brand-50 transition-colors">🏠</div>
                 </div>
                 {(home.address || home.city) && (
-                  <span className="text-sm text-neutral-500">
+                  <span className="text-sm font-medium text-neutral-500 bg-neutral-50 inline-flex px-3 py-1.5 rounded-lg w-fit">
                     {[home.address, home.city].filter(Boolean).join(", ")}
                   </span>
                 )}
